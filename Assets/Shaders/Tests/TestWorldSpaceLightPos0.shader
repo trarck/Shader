@@ -51,8 +51,9 @@
 		{
 			// sample the texture
 			fixed3 worldLight = normalize(_WorldSpaceLightPos0.xyz);
-		worldLight.x = worldLight.z*0.5 + 0.5;
+		worldLight.x = worldLight.x*0.5 + 0.5;
 			fixed4 col = fixed4(worldLight.x,0,0,1);
+			col.xyz = _WorldSpaceLightPos0.xyz;
 			return col;
 		}
 		ENDCG

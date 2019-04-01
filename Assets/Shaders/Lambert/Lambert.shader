@@ -54,9 +54,9 @@
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
 				fixed3 worldNormal = normalize(i.worldNormal);
-				//把光照方向归一化
-				//fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
-				fixed3 worldLightDir = _WorldSpaceLightPos0.xyz;
+				//把光照方向归一化,如果要求不高，这里可以不归一化
+				fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+				//fixed3 worldLightDir = _WorldSpaceLightPos0.xyz;
 				half nl = max(0, dot(i.worldNormal, worldLightDir));
 				col.rgb *= nl*_LightColor0;
 				return col;

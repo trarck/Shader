@@ -1,4 +1,4 @@
-﻿Shader "Tests/Intergrate"
+﻿Shader "Custom/HalfLambert"
 {
 	Properties
 	{
@@ -34,7 +34,7 @@
 		{
 			float2 uv : TEXCOORD0;
 			float4 vertex : SV_POSITION;
-			half3 intergrate : COLOR0;
+			float3 worldNormal:TEXCOORD1;
 		};
 
 		sampler2D _MainTex;
@@ -45,25 +45,21 @@
 			v2f o;
 			o.vertex = UnityObjectToClipPos(v.vertex);
 			o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-			half3 intergrate = normalize(v.normal);// normalize(_WorldSpaceLightPos0.xyz)
-			o.intergrate = intergrate;
+			o.worldNormal = UnityObjectToWorldNormal(v.normal);
 			return o;
 		}
 
 		fixed4 frag(v2f i) : SV_Target
 		{
 			// sample the texture
-			fixed4 cor = fixed4(1,0,0,1);
-		   fixed3 v = normalize(_WorldSpaceLightPos0.xyz);
-			half len = length(v);
-			if (len <0.999 || len >1.0000001) {
-				cor.r= 0;
-			}
-			else {
-				cor.r = 1;
-			}
-			//cor.a = len;
-			return cor;
+			fixed4 col = tex2D(_MainTex, i.uv);
+			fixed3 worldNormal = normalize(i.worldNormal);
+			//把光照方向归一化,如果要求不高，这里可以不归一化
+			fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+			//fixed3 worldLightDir = _WorldSpaceLightPos0.xyz;
+			half nl = 0.5* dot(i.worldNormal, worldLightDir)+0.5;
+			col.rgb *= nl * _LightColor0;
+			return col;
 		}
 		ENDCG
 	}

@@ -53,7 +53,8 @@
 				//光照 
 				fixed3 worldLight = normalize(_WorldSpaceLightPos0.xyz);
 				//漫反射光 
-				fixed3 diffuse = _LightColor0.rgb * saturate(dot(worldNormal, worldLight)); 
+				//fixed3 diffuse = _LightColor0.rgb * saturate(dot(worldNormal, worldLight)); 
+				fixed3 diffuse = _LightColor0.rgb * max(0,dot(worldNormal, worldLight));
 				//摄像机方向 
 				//fixed3 viewDir = normalize(_WorldSpaceCameraPos.xyz - mul((float3x3)unity_WorldToObject, a.vertex)); 
 				//反射光
