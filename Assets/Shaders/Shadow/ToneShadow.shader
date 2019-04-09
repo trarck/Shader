@@ -75,9 +75,12 @@ Shader "Custom/ToneShadow"
 
 				//计算高光
 				float specular = pow(max(0, dot(R, worldViewDir)), _Specular);
-				half rim = 1.0 - max(0, dot(worldViewDir, worldNormal));
+				half rim = max(0.4,dot(worldLightDir, worldNormal));
+				//if (rim <0.5) {
+				//	rim = 0.2;
+				//}
 
-				col.rgb *= (diffuse*_LightColor0 + _SpecColor.rgb*specular);
+				col.rgb *= rim;
 				return col;
 			}
 
