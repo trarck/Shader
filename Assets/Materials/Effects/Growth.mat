@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Dissolve
-  m_Shader: {fileID: 4800000, guid: d17c9d19ab3c10d4b8e9ddbdfee57e49, type: 3}
+  m_Name: Growth
+  m_Shader: {fileID: 4800000, guid: c179bdde4a4ee9a49bdf309cc98d195a, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -63,9 +63,9 @@ Material:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DissolveColorFactor: 0.085
-    - _DissolveEdgeColorFactor: 0.045
-    - _DissolveThreshold: 0.42
+    - _DissolveColorFactor: 0.072
+    - _DissolveEdgeColorFactor: 0.039
+    - _DissolveThreshold: 1.43
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -81,6 +81,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DissolveColor: {r: 1, g: 0, b: 0, a: 1}
-    - _DissolveEdgeColor: {r: 1, g: 1, b: 0, a: 1}
+    - _DissolveColor: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
+    - _DissolveDirection: {r: 1, g: 1, b: 0, a: 1}
+    - _DissolveEdgeColor: {r: 0.2735849, g: 0.2735849, b: 0.2490655, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

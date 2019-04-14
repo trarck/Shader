@@ -1,8 +1,9 @@
-﻿Shader "Effect/Dissolve"
+﻿Shader "Effect/DissolveWithDirection"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+		_NoiseTex("NoiseTex (R)",2D) = "white"{}
 		_DissolveThreshold("Dissolve Threshold",float) = 1
 		_DissolveDirection("Dissolve Direction",Vector) = (1, 1, 0)
 		_DissolveColor("Dissolve Color",Color)=(1,0,0,1)
@@ -17,7 +18,7 @@
 
         Pass
         {
-			cull Off
+			cull Back
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -39,6 +40,8 @@
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+			sampler2D _NoiseTex;
+
 			half _DissolveThreshold;
 			half3 _DissolveDirection;
 			fixed4 _DissolveColor;
@@ -58,19 +61,15 @@
 
             fixed4 frag (v2f i) : SV_Target
 			{
+
 				float dissolveValue = dot(i.worldPos, normalize(_DissolveDirection));
-				float clipValue = _DissolveThreshold - dissolveValue;
+				dissolveValue += tex2D(_NoiseTex, i.uv).r;
+				float clipValue = dissolveValue-_DissolveThreshold ;
 				clip(clipValue);
-				// sample the texture
+
 				fixed4 col = tex2D(_MainTex, i.uv);
-				fixed colorSign = step(_DissolveColorFactor, clipValue);
-				fixed edgeSign = step(_DissolveEdgeColorFactor, clipValue);
-
-			    half4 dissolveColor = lerp(_DissolveColor, _DissolveEdgeColor,  clipValue);
-				
-				col = lerp(dissolveColor, col, clipValue);
-
-				//col = (1-s)*col+_DissolveColor * s;
+				half3 dissolveColor = lerp(_DissolveEdgeColor.rgb, _DissolveColor.rgb, smoothstep(0, _DissolveEdgeColorFactor, clipValue));
+				col.rgb = lerp(dissolveColor, col.rgb, smoothstep(_DissolveColorFactor, _DissolveColorFactor, clipValue));
 
                 return col;
             }

@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Dissolve
-  m_Shader: {fileID: 4800000, guid: d17c9d19ab3c10d4b8e9ddbdfee57e49, type: 3}
+  m_Name: DissolveWithDirection
+  m_Shader: {fileID: 4800000, guid: dea45e6019635904aaab2848a76cd78c, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -63,9 +63,10 @@ Material:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DissolveColorFactor: 0.085
-    - _DissolveEdgeColorFactor: 0.045
-    - _DissolveThreshold: 0.42
+    - _DissolveColorFactor: 0.11
+    - _DissolveEdgeColorFactor: 0.066
+    - _DissolveThreshold: 0.4
+    - _Distance: 1.61
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -82,5 +83,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DissolveColor: {r: 1, g: 0, b: 0, a: 1}
+    - _DissolveDirection: {r: 0, g: 1, b: 0, a: 1}
     - _DissolveEdgeColor: {r: 1, g: 1, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Parameters: {r: 0.5, g: 0.5, b: 0, a: 2.39}
