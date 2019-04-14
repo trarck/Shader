@@ -303,7 +303,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100000, guid: 986682e5dd4f335428ac02c1ca434eb7, type: 3}
       propertyPath: m_Name
-      value: ToonBase
+      value: Dissolve
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 986682e5dd4f335428ac02c1ca434eb7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -360,7 +360,7 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 986682e5dd4f335428ac02c1ca434eb7, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 6a7ef5f40beb88640ac47da9bb33049f, type: 2}
+      objectReference: {fileID: 2100000, guid: 468664fa9c1fd694f9a1556f87da1b5f, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 986682e5dd4f335428ac02c1ca434eb7, type: 3}
 --- !u!4 &542570787 stripped

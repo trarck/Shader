@@ -62,7 +62,9 @@
 				//把光照方向归一化,如果要求不高，这里可以不归一化
 				fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
 				//fixed3 worldLightDir = _WorldSpaceLightPos0.xyz;
-				half diff = 0.5* dot(i.worldNormal, worldLightDir) + 0.5;
+				//计算diffuse
+				half diff = 0.5* dot(i.worldNormal, worldLightDir) + 0.5; //max(0, dot(i.worldNormal, worldLightDir));//  0.5* dot(i.worldNormal, worldLightDir) + 0.5;
+				//diff=(diff+1)*0.5;
 				half toon = floor(diff*_Steps) / _Steps;
 				diff = lerp(diff, toon, _ToonEffect);
 
