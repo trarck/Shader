@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NoiseTex:
-        m_Texture: {fileID: 2800000, guid: d4ad69a5b149de6488949e0eeffce104, type: 3}
+        m_Texture: {fileID: 2800000, guid: 97956af1903a3b04ba5027d69c7fd9a1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -65,7 +65,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DissolveColorFactor: 0.072
     - _DissolveEdgeColorFactor: 0.039
-    - _DissolveThreshold: 1.43
+    - _DissolveThreshold: 0.57
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -81,7 +81,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DissolveColor: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
+    - _DissolveColor: {r: 0.21960783, g: 0.7647059, b: 0.6933586, a: 1}
     - _DissolveDirection: {r: 1, g: 1, b: 0, a: 1}
-    - _DissolveEdgeColor: {r: 0.2735849, g: 0.2735849, b: 0.2490655, a: 1}
+    - _DissolveEdgeColor: {r: 0.04705882, g: 0.94509804, b: 0.46831188, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

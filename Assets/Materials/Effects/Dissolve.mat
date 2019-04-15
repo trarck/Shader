@@ -65,7 +65,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DissolveColorFactor: 0.085
     - _DissolveEdgeColorFactor: 0.045
-    - _DissolveThreshold: 0.42
+    - _DissolveThreshold: 0.38
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
