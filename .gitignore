@@ -53,3 +53,7 @@ sysinfo.txt
 /AssetBundles
 /Assets/StreamingAssets
 /Assets/StreamingAssets.meta
+/Assets/DissolveShader
+/Assets/VacuumShaders
+/Assets/DissolveShader.meta
+/Assets/VacuumShaders.meta
