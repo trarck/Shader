@@ -7,7 +7,7 @@ Shader "Custom/NormalOutline"
 		_MainTex("Texture", 2D) = "white" {}
 		_OutlineColor("OutlineColor", Color) = (1,0,0,1)
 		_OutlineFactor("OutlineFactor", Range(0,1)) = 0.1
-		_ZOffset("Z Offset", Range(0, 1)) = 0
+		_ZOffset("Z Offset",float) = 0
 	}
 		SubShader
 	{
@@ -72,15 +72,15 @@ Shader "Custom/NormalOutline"
 			//剔除正面，只渲染背面，对于大多数模型适用，不过如果需要背面的，就有问题了
 			Cull Front
 			//控制深度偏移，描边pass远离相机一些，防止与正常pass穿插
-			Offset 1,1
+			Offset 18,1
 			CGPROGRAM
 			//使用vert函数和frag函数
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "UnityCG.cginc"
 			fixed4 _OutlineColor;
-			float _OutlineFactor;
-			float _ZOffset;
+			half _OutlineFactor;
+			half _ZOffset;
 
 			struct v2f
 			{

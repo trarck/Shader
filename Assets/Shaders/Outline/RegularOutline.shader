@@ -62,7 +62,7 @@ ENDCG
 			Name "OUTLINE"
 			Tags { "Queue" = "Transparent" "IgnoreProjector" = "True"}
 			Cull Front
-			ZWrite Off
+			ZWrite On
 			//ZTest Less
 			//Offset 1, 1
  

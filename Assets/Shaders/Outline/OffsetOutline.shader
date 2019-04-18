@@ -7,7 +7,7 @@ Shader "Custom/OffsetOutline"
 		_MainTex("Texture", 2D) = "white" {}
 		_OutlineColor("OutlineColor", Color) = (1,0,0,1)
 		_OutlineFactor("OutlineFactor", Range(0,1)) = 0.1
-		_ZOffset("Z Offset", Range(0, 1)) = 0
+		_ZOffset("Z Offset", float) = 0
 		_OffsetFactor("offset slope",Float) = 1
 		_OffsetUnits("offset units",Float) = 1
 	}

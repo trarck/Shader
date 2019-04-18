@@ -1,17 +1,16 @@
-ï»¿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Custom/ZWriteOffOutline"
+Shader "Outline/Outline"
 {
-	Properties
-	{
-		_MainTex("Texture", 2D) = "white" {}
-		_OutlineColor("OutlineColor", Color) = (1,0,0,1)
-		_OutlineFactor("OutlineFactor", Range(0,1)) = 0.1
-		_ZOffset("Z Offset", float) = 0
-	}
+		Properties
+		{
+			_MainTex("Texture", 2D) = "white" {}
+			_OutlineColor("OutlineColor", Color) = (1,0,0,1)
+			_OutlineFactor("OutlineFactor", Range(0,1)) = 0.1
+			_ZOffset("Z Offset",float) = 0
+		}
 		SubShader
 		{
-			Tags { "RenderType" = "Opaque" "Queue" = "Transparent"}
+			Tags { "RenderType" = "Opaque" }
 			LOD 100
 
 			Pass
@@ -57,11 +56,12 @@ Shader "Custom/ZWriteOffOutline"
 					// sample the texture
 					fixed4 col = tex2D(_MainTex, i.uv);
 					fixed3 worldNormal = normalize(i.worldNormal);
-					//æŠŠå…‰ç…§æ–¹å‘å½’ä¸€åŒ–,å¦‚æœè¦æ±‚ä¸é«˜ï¼Œè¿™é‡Œå¯ä»¥ä¸å½’ä¸€åŒ–
+					//°Ñ¹âÕÕ·½Ïò¹éÒ»»¯,Èç¹ûÒªÇó²»¸ß£¬ÕâÀï¿ÉÒÔ²»¹éÒ»»¯
 					fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
 					//fixed3 worldLightDir = _WorldSpaceLightPos0.xyz;
 					half nl = 0.5* dot(i.worldNormal, worldLightDir) + 0.5;
 					col.rgb *= nl * _LightColor0;
+					col.rgb = fixed3(0.5, 0, 0);
 					return col;
 				}
 				ENDCG
@@ -69,19 +69,17 @@ Shader "Custom/ZWriteOffOutline"
 
 			Pass
 			{
-					//å‰”é™¤æ­£é¢ï¼Œåªæ¸²æŸ“èƒŒé¢ï¼Œå¯¹äºå¤§å¤šæ•°æ¨¡å‹é€‚ç”¨ï¼Œä¸è¿‡å¦‚æœéœ€è¦èƒŒé¢çš„ï¼Œå°±æœ‰é—®é¢˜äº†
+					//ÌŞ³ıÕıÃæ
 					Cull Front
-					ZWrite Off
-					//æ§åˆ¶æ·±åº¦åç§»ï¼Œæè¾¹passè¿œç¦»ç›¸æœºä¸€äº›ï¼Œé˜²æ­¢ä¸æ­£å¸¸passç©¿æ’
 
 					CGPROGRAM
-					//ä½¿ç”¨vertå‡½æ•°å’Œfragå‡½æ•°
+					//Ê¹ÓÃvertº¯ÊıºÍfragº¯Êı
 					#pragma vertex vert
 					#pragma fragment frag
 					#include "UnityCG.cginc"
 					fixed4 _OutlineColor;
-					float _OutlineFactor;
-					float _ZOffset;
+					half _OutlineFactor;
+					half _ZOffset;
 
 					struct v2f
 					{
@@ -91,22 +89,27 @@ Shader "Custom/ZWriteOffOutline"
 					v2f vert(appdata_full v)
 					{
 						v2f o;
-						//åœ¨vertexé˜¶æ®µï¼Œæ¯ä¸ªé¡¶ç‚¹æŒ‰ç…§æ³•çº¿çš„æ–¹å‘åç§»ä¸€éƒ¨åˆ†ï¼Œä¸è¿‡è¿™ç§ä¼šé€ æˆè¿‘å¤§è¿œå°çš„é€è§†é—®é¢˜
+						//·½·¨Ò»£º
+						//ÔÚvertex½×¶Î£¬Ã¿¸ö¶¥µã°´ÕÕ·¨ÏßµÄ·½ÏòÆ«ÒÆÒ»²¿·Ö£¬²»¹ıÕâÖÖ»áÔì³É½ü´óÔ¶Ğ¡µÄÍ¸ÊÓÎÊÌâ
 						//v.vertex.xyz += v.normal * _OutlineFactor;
+						//o.pos = UnityObjectToClipPos(v.vertex);
+
+						//·½·¨¶ş£º
+						//½«·¨Ïß·½Ïò×ª»»µ½ÊÓ¿Õ¼ä
 						o.pos = UnityObjectToClipPos(v.vertex);
-						//å°†æ³•çº¿æ–¹å‘è½¬æ¢åˆ°è§†ç©ºé—´
 						float3 vnormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
-						//å°†è§†ç©ºé—´æ³•çº¿xyåæ ‡è½¬åŒ–åˆ°æŠ•å½±ç©ºé—´
+						//½«ÊÓ¿Õ¼ä·¨Ïßxy×ø±ê×ª»¯µ½Í¶Ó°¿Õ¼ä
 						float2 offset = TransformViewToProjection(vnormal.xy);
-						//åœ¨æœ€ç»ˆæŠ•å½±é˜¶æ®µè¾“å‡ºè¿›è¡Œåç§»æ“ä½œ
-						o.pos.xy += offset * _OutlineFactor;
+						//ÔÚ×îÖÕÍ¶Ó°½×¶ÎÊä³ö½øĞĞÆ«ÒÆ²Ù×÷
+						o.pos.xy += offset * _OutlineFactor*o.pos.z;// ÕâÀï²»³ËÒÔzÁË£¬·ñÔòÖµ²»Ò»Ñùµ¼ÖÂÃè³öµÄ±ß´óĞ¡²»Ò»Ñù
+						//Ç¿ÖÆĞŞÕız,Ê¹Ö»ÏÔÊ¾Íâ±ß¡£
 						o.pos.z += _ZOffset;
 						return o;
 					}
 
 					fixed4 frag(v2f i) : SV_Target
 					{
-						//è¿™ä¸ªPassç›´æ¥è¾“å‡ºæè¾¹é¢œè‰²
+						//Õâ¸öPassÖ±½ÓÊä³öÃè±ßÑÕÉ«
 						return _OutlineColor;
 					}
 					ENDCG
