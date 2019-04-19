@@ -1,6 +1,5 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-Shader "Custom/NormalOutline"
+﻿
+Shader "Outline/NormalOutline"
 {
 	Properties
 	{
@@ -10,9 +9,59 @@ Shader "Custom/NormalOutline"
 		_ZOffset("Z Offset",float) = 0
 	}
 		SubShader
-	{
-		Tags { "RenderType" = "Opaque" }
-		LOD 100
+		{
+			Tags { "RenderType" = "Opaque" }
+			LOD 100
+
+			Pass
+			{
+				Name "OUTLINE"
+				//剔除正面
+				Cull Front
+
+				CGPROGRAM
+			//使用vert函数和frag函数
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
+			fixed4 _OutlineColor;
+			half _OutlineFactor;
+			half _ZOffset;
+
+			struct v2f
+			{
+				float4 pos : SV_POSITION;
+			};
+
+			v2f vert(appdata_full v)
+			{
+				v2f o;
+				//方法一：
+				//在vertex阶段，每个顶点按照法线的方向偏移一部分，不过这种会造成近大远小的透视问题
+				v.vertex.xyz += v.normal * _OutlineFactor;
+				o.pos = UnityObjectToClipPos(v.vertex);
+
+				//方法二：
+				//将法线方向转换到视空间
+				//o.pos = UnityObjectToClipPos(v.vertex);
+				//float3 vnormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
+				////将视空间法线xy坐标转化到投影空间
+				//float2 offset = TransformViewToProjection(vnormal.xy);
+				////在最终投影阶段输出进行偏移操作
+				//o.pos.xy += offset * _OutlineFactor;// 这里不乘以z了，经过测试z值为相机的near值。
+
+				//强制修正z,使只显示外边。
+				o.pos.z += _ZOffset;
+				return o;
+			}
+
+			fixed4 frag(v2f i) : SV_Target
+			{
+				//这个Pass直接输出描边颜色
+				return _OutlineColor;
+			}
+			ENDCG
+		}
 
 		Pass
 		{
@@ -66,49 +115,5 @@ Shader "Custom/NormalOutline"
 			}
 			ENDCG
 		}
-
-		Pass
-		{
-			//剔除正面，只渲染背面，对于大多数模型适用，不过如果需要背面的，就有问题了
-			Cull Front
-			//控制深度偏移，描边pass远离相机一些，防止与正常pass穿插
-			Offset 18,1
-			CGPROGRAM
-			//使用vert函数和frag函数
-			#pragma vertex vert
-			#pragma fragment frag
-			#include "UnityCG.cginc"
-			fixed4 _OutlineColor;
-			half _OutlineFactor;
-			half _ZOffset;
-
-			struct v2f
-			{
-				float4 pos : SV_POSITION;
-			};
-
-			v2f vert(appdata_full v)
-			{
-				v2f o;
-				//在vertex阶段，每个顶点按照法线的方向偏移一部分，不过这种会造成近大远小的透视问题
-				v.vertex.xyz += v.normal * _OutlineFactor;
-				o.pos = UnityObjectToClipPos(v.vertex);
-				////将法线方向转换到视空间
-				//float3 vnormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
-				////将视空间法线xy坐标转化到投影空间
-				//float2 offset = TransformViewToProjection(vnormal.xy);
-				////在最终投影阶段输出进行偏移操作
-				//o.pos.xy += offset * _OutlineFactor *  o.pos.z;
-				//o.pos.z += _ZOffset;
-				return o;
-			}
-
-			fixed4 frag(v2f i) : SV_Target
-			{
-				//这个Pass直接输出描边颜色
-				return _OutlineColor;
-			}
-			ENDCG
 		}
-	}
 }
