@@ -11,7 +11,9 @@
 // Microfacet specular = D*G*F / (4*NoL*NoV) = D*Vis*F
 // Vis = G / (4*NoL*NoV)
 
+//================== Physically based  Diffuse=========================//
 
+//[normal]
 float3 Diffuse_Lambert( float3 DiffuseColor )
 {
 	return DiffuseColor * (1 / PI);
@@ -26,6 +28,8 @@ float3 Diffuse_Burley( float3 DiffuseColor, float Roughness, float NoV, float No
 	return DiffuseColor * ( (1 / PI) * FdV * FdL );
 }
 
+// ------------------------------------------------------------
+//粗糙的表面： 布料 陶瓷 沙地等
 // [Gotanda 2012, "Beyond a Simple Physically Based Blinn-Phong Model in Real-Time"]
 float3 Diffuse_OrenNayar( float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH )
 {
@@ -37,6 +41,20 @@ float3 Diffuse_OrenNayar( float3 DiffuseColor, float Roughness, float NoV, float
 	float C1 = 1 - 0.5 * s2 / (s2 + 0.33);
 	float C2 = 0.45 * s2 / (s2 + 0.09) * Cosri * ( Cosri >= 0 ? rcp( max( NoL, NoV ) ) : 1 );
 	return DiffuseColor / PI * ( C1 + C2 ) * ( 1 + Roughness * 0.5 );
+}
+
+//[blender-shader]
+float3 Diffuse_OrenNayar(float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH, float LoV)
+{
+	float div = 1.0 / (PI + ((3.0 * PI - 4.0) / 6.0) * Roughness);
+
+	float A = 1.0 * div;
+	float B = Roughness * div;
+
+	float s = LoV - NoL * NoV;
+	float t = lerp(1.0, max(NoL, NoV), step(0.0, s));
+
+	return DiffuseColor * (A + B * s / t) * NoL;
 }
 
 // [Gotanda 2014, "Designing Reflectance Models for New Consoles"]
@@ -65,6 +83,24 @@ float3 Diffuse_Gotanda( float3 DiffuseColor, float Roughness, float NoV, float N
 	float Lr = (21.0 / 20.0) * (1 - F0) * ( Fr * Lm + Vd + Bp );
 	return DiffuseColor / PI * Lr;
 #endif
+}
+
+//pre decalre
+float3 F_Schlick( float3 SpecularColor, float VoH );
+// [Earl Hammon,Jr.  GDC 2017,PBR Diffuse Lighting for GGX + Smith Microsurfaces].
+float3 Diffuse_GGX(float3 DiffuseColor, float NdotV, float NdotL, float NdotH, float LdotV, float perceptualRoughness)
+{
+	float facing = 0.5 + 0.5 * LdotV;
+	float rough = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
+	float transmitL = 1 - F_Schlick(0, NdotL);
+	float transmitV = 1 - F_Schlick(0, NdotV);
+	float smooth = transmitL * transmitV * 1.05;             // Normalize F_t over the hemisphere
+	float single = lerp(smooth, rough, perceptualRoughness); // Rescaled by PI
+															 // This constant is picked s.t. setting perceptualRoughness, DiffuseColor and all angles to 1
+															 // allows us to match the Lambertian and the Disney Diffuse models. Original value: 0.1159.
+	float multiple = perceptualRoughness * (0.079577 * PI);  // Rescaled by PI
+
+	return INV_PI * (single + DiffuseColor * multiple);
 }
 
 // [Blinn 1977, "Models of light reflection for computer synthesized pictures"]
