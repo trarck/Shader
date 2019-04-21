@@ -88,20 +88,28 @@ float3 Diffuse_Gotanda( float3 DiffuseColor, float Roughness, float NoV, float N
 //pre decalre
 float3 F_Schlick( float3 SpecularColor, float VoH );
 // [Earl Hammon,Jr.  GDC 2017,PBR Diffuse Lighting for GGX + Smith Microsurfaces].
-float3 Diffuse_GGX(float3 DiffuseColor, float NdotV, float NdotL, float NdotH, float LdotV, float perceptualRoughness)
+float3 Diffuse_GGX(float3 DiffuseColor, float NoV, float NoL, float NdotH, float LdotV, float perceptualRoughness)
 {
 	float facing = 0.5 + 0.5 * LdotV;
 	float rough = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
-	float transmitL = 1 - F_Schlick(0, NdotL);
-	float transmitV = 1 - F_Schlick(0, NdotV);
+	float transmitL = 1 - F_Schlick(0, NoL);
+	float transmitV = 1 - F_Schlick(0, NoV);
 	float smooth = transmitL * transmitV * 1.05;             // Normalize F_t over the hemisphere
 	float single = lerp(smooth, rough, perceptualRoughness); // Rescaled by PI
 															 // This constant is picked s.t. setting perceptualRoughness, DiffuseColor and all angles to 1
 															 // allows us to match the Lambertian and the Disney Diffuse models. Original value: 0.1159.
 	float multiple = perceptualRoughness * (0.079577 * PI);  // Rescaled by PI
 
-	return INV_PI * (single + DiffuseColor * multiple);
+	return (single + DiffuseColor * multiple) / PI;
 }
+
+//[丝绒]
+float3 Diffuse_Minnaert(float NoV, float NoL,float k)
+{
+	return ((k + 1) * pow(NoL*NoV, k - 1) / (2 * PI));
+}
+
+//================== Physically based D=========================//
 
 // [Blinn 1977, "Models of light reflection for computer synthesized pictures"]
 float D_Blinn( float Roughness, float NoH )
@@ -143,6 +151,19 @@ float D_GGXaniso( float RoughnessX, float RoughnessY, float NoH, float3 H, float
 	return 1 / ( PI * ax*ay * d*d );
 }
 
+float D_WardAniso(float RoughnessX, float RoughnessY, float NoL, float NoV, float NoH, float3 H, float3 X, float3 Y)
+{
+	float ax = RoughnessX * RoughnessX;
+	float ay = RoughnessY * RoughnessY;
+	float XoH = dot(X, H);
+	float YoH = dot(Y, H);
+
+	float d = ((XoH*XoH) / (ax*ax) + (YoH * YoH) / (ay*ay)) / (NoH * NoH);
+	return exp(-d) / (4 * PI * ax * ay * sqrt(NoL * NoV));
+}
+
+//================== Physically based G=========================//
+
 float Vis_Implicit()
 {
 	return 0.25;
@@ -159,6 +180,20 @@ float Vis_Kelemen( float VoH )
 {
 	// constant to prevent NaN
 	return rcp( 4 * VoH * VoH + 1e-5);
+}
+
+//Modified Kelemen-Szirmay-Kalos which takes roughness into account, based on: http://www.filmicworlds.com/2014/04/21/optimizing-ggx-shaders-with-dotlh/ 
+half Vis_ModifiedKelemen(half LdotH, half Roughness)
+{
+	//form Unity
+	half c = 0.797884560802865; // c = sqrt(2 / Pi)
+	half k = Roughness * Roughness * c;
+	half gH = LdotH * (1-k) + k;
+	half res = 1.0 / (gH * gH);
+	return res / 4; //Unity -> UE4
+
+	//float gH = NoV * k + (1 - k);
+	//return (gH * gH * NoL)/( 4 * NoL * NoV);
 }
 
 // Tuned to match behavior of Vis_Smith
@@ -194,6 +229,110 @@ float Vis_SmithJointApprox( float Roughness, float NoV, float NoL )
 	return 0.5 * rcp( Vis_SmithV + Vis_SmithL );
 }
 
+//Schlick-Beckmann
+//From Unity, Smith-Schlick derived for Beckmann
+half Vis_SmithBeckmann( float Roughness, float NoV, float NoL )
+{
+	half c = 0.797884560802865h; // c = sqrt(2 / Pi)
+    half k = Roughness * c;
+
+	float Vis_SchlickV = NoV * (1 - k) + k;
+	float Vis_SchlickL = NoL * (1 - k) + k;
+	return 0.25 / ( Vis_SchlickV * Vis_SchlickL + 1e-5f);
+}
+
+//[Walter et al. 2007, "Microfacet models for refraction through rough surfaces"]
+float Vis_GGX(float Roughness, float NoV, float NoL)
+{
+	//https://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+	float a = Roughness * Roughness;
+	float a2 = a * a;
+
+	float d = a2 + (1 - a2) * NoV * NoV;
+	//float G = (2 * NoV) / (NoV + sqrt(d));
+	return 0.5 / ((NoV + sqrt(d)) * NoL);
+}
+
+// Torrance-Sparrow G term (from Cook-Torrance)
+// Cook-Torrance visibility term, doesn't take roughness into account
+half Vis_CookTorrance (half NoV, half NoL, half NdotH, half VdotH)
+{
+	VdotH += 1e-5f;
+	half G = min (1.0, min (
+		(2.0 * NdotH * NoV) / VdotH,
+		(2.0 * NdotH * NoL) / VdotH));
+	return G / (NoL * NoV + 1e-4f);
+
+	//优化
+	//return min(1, 2 * (NdotH / VdotH) * min(NoL, NoV)) / (NoL * NoV + 1e-4f);
+}
+
+float Vis_Beckmann(float Roughness, float NoV, float NoL)
+{
+	half a = Roughness * Roughness;
+	
+	float G1;
+    float a1 = NoV / ( a * sqrt(1.0f - NoV * NoV));
+    if ( a1 >= 1.6f ) {  
+        G1 = 1.0f;
+    }
+    else {
+        float c2 = a1 * a1;
+        G1 = (3.535f * a1 + 2.181f * c2) / ( 1 + 2.276f * a1 + 2.577f * c2);
+    }
+	
+	float G2;
+	float a2 = NoL / ( a * sqrt(1.0f - NoL * NoL));
+    if ( a2 >= 1.6f ) {   
+        G2 = 1.0f;
+    }
+	else {  
+        float c2 = a2 * a2;
+        G2 = (3.535f * a2 + 2.181f * c2) / ( 1 + 2.276f * a2 + 2.577f * c2);
+    }
+    
+	return G1 * G2 / ( 4 * NoL* NoV );
+}
+
+// Aniso G Iterm
+
+// Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
+// Note: V = G / (4 * NoL * NoV)
+float Vis_SmithJointGGXAniso(float ToV, float BoV, float NoV, float ToL, float BoL, float NoL, float roughnessT, float roughnessB)
+{
+    float aT = roughnessT;
+    float aT2 = aT * aT;
+    float aB = roughnessB;
+    float aB2 = aB * aB;
+
+    float lambdaV = NoL * sqrt(aT2 * ToV * ToV + aB2 * BoV * BoV + NoV * NoV);
+    float lambdaL = NoV * sqrt(aT2 * ToL * ToL + aB2 * BoL * BoL + NoL * NoL);
+
+    return 0.5 / (lambdaV + lambdaL);
+}
+
+// Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
+float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
+                            float ToV, float BoV, float NoV,
+                            float ToL, float BoL, float NoL,
+                            float roughnessT, float roughnessB, float partLambdaV)
+{
+    float aT2 = roughnessT * roughnessT;
+    float aB2 = roughnessB * roughnessB;
+
+    float  f = TdotH * TdotH / aT2 + BdotH * BdotH / aB2 + NdotH * NdotH;
+    float2 D = float2(1, roughnessT * roughnessB * f * f); // Fraction without the constant (1/Pi)
+
+    float lambdaV = NoL * partLambdaV;
+    float lambdaL = NoV * sqrt(aT2 * ToL * ToL + aB2 * BoL * BoL + NoL * NoL);
+
+    float2 G = float2(1, lambdaV + lambdaL);               // Fraction without the constant (0.5)
+
+    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
+}
+
+//================== Physically based F=========================//
+
 float3 F_None( float3 SpecularColor )
 {
 	return SpecularColor;
@@ -210,6 +349,7 @@ float3 F_Schlick( float3 SpecularColor, float VoH )
 	
 }
 
+//[Cook and Torrance 1982, "A Reflectance Model for Computer Graphics"]
 float3 F_Fresnel( float3 SpecularColor, float VoH )
 {
 	float3 SpecularColorSqrt = sqrt( clamp( float3(0, 0, 0), float3(0.99, 0.99, 0.99), SpecularColor ) );
@@ -219,18 +359,46 @@ float3 F_Fresnel( float3 SpecularColor, float VoH )
 }
 
 
+half3 F_SchlickApproximation(half3 SpecularColor, half NoH)
+{
+//	Fresnel: Schlick / fast fresnel approximation
+	#define OneOnLN2_x6 8.656170
+	return SpecularColor + ( 1.0h - SpecularColor) * exp2(-OneOnLN2_x6 * NoH );
+}
+
+half F_SebastienLagarde(half VoH)
+{
+    return exp2((-5.55473h * VoH - 6.98316h) * VoH);
+}
+
+half F_SphericalGaussian(half3 F0, half VoH)
+{
+	return F0 + (1 - F0)  * pow(2, ((-5.55473 * VoH) - 6.98316) * VoH);
+}
+
+half3 F_LazarovFresnelTerm (half3 F0, half roughness, half VoH)
+{
+	half t = Pow5 (1 - VoH);	// ala Schlick interpoliation
+	t /= 4 - 3 * roughness;
+	return F0 + (1-F0) * t;
+}
+half3 F_SebLagardeFresnelTerm (half3 F0, half roughness, half VoH)
+{
+	half t = Pow5 (1 - VoH);	// ala Schlick interpoliation
+	return F0 + (max (F0, roughness) - F0) * t;
+}
+
 
 //---------------
 // EnvBRDF
 //---------------
 
-Texture2D		PreIntegratedGF;
-SamplerState	PreIntegratedGFSampler;
+sampler2D		PreIntegratedGF;
 
 half3 EnvBRDF( half3 SpecularColor, half Roughness, half NoV )
 {
 	// Importance sampled preintegrated G * F
-	float2 AB = Texture2DSampleLevel( PreIntegratedGF, PreIntegratedGFSampler, float2( NoV, Roughness ), 0 ).rg;
+	float2 AB = tex2D( PreIntegratedGF, float2( NoV, Roughness )).rg;
 
 	// Anything less than 2% is physically impossible and is instead considered to be shadowing 
 	float3 GF = SpecularColor * AB.x + saturate( 50.0 * SpecularColor.g ) * AB.y;
@@ -295,6 +463,25 @@ float D_InvGGX( float Roughness, float NoH )
 	return rcp( PI * (1 + A*a2) ) * ( 1 + 4 * a2*a2 / ( d*d ) );
 }
 
+// [Ashikhmin 2007, "Distribution-based BRDFs"]
+float D_Ashikhmin(float Roughness, float NoH) {
+	float a2 = Roughness * Roughness;
+	float cos2h = NoH * NoH;
+	float sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
+	float sin4h = sin2h * sin2h;
+	float cot2 = -cos2h / (a2 * sin2h);
+	return 1.0 / (PI * (4.0 * a2 + 1.0) * sin4h) * (4.0 * exp(cot2) + sin4h);
+}
+
+// [Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF"]
+float D_Charlie(float Roughness, float NoH) {
+	float invAlpha = 1.0 / Roughness;
+	float cos2h = NoH * NoH;
+	float sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
+	return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (2.0 * PI);
+}
+
+// [Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for The Order: 1886"]
 float Vis_Cloth( float NoV, float NoL )
 {
 	return rcp( 4 * ( NoL + NoV - NoL * NoV ) );
