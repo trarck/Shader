@@ -91,15 +91,21 @@ Shader "Custom/ZWriteOffOutline"
 					v2f vert(appdata_full v)
 					{
 						v2f o;
+						//方法一：
 						//在vertex阶段，每个顶点按照法线的方向偏移一部分，不过这种会造成近大远小的透视问题
-						//v.vertex.xyz += v.normal * _OutlineFactor;
+						v.vertex.xyz += v.normal * _OutlineFactor;
 						o.pos = UnityObjectToClipPos(v.vertex);
+
+						//方法二：
 						//将法线方向转换到视空间
-						float3 vnormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
-						//将视空间法线xy坐标转化到投影空间
-						float2 offset = TransformViewToProjection(vnormal.xy);
-						//在最终投影阶段输出进行偏移操作
-						o.pos.xy += offset * _OutlineFactor;
+						//o.pos = UnityObjectToClipPos(v.vertex);
+						//float3 vnormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
+						////将视空间法线xy坐标转化到投影空间
+						//float2 offset = TransformViewToProjection(vnormal.xy);
+						////在最终投影阶段输出进行偏移操作
+						//o.pos.xy += offset * _OutlineFactor;// 这里不乘以z了，经过测试z值为相机的near值。
+
+						//强制修正z,使只显示外边。
 						o.pos.z += _ZOffset;
 						return o;
 					}
