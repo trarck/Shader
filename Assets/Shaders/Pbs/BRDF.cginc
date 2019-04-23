@@ -117,7 +117,7 @@ float D_Blinn( float Roughness, float NoH )
 	float a = Roughness * Roughness;
 	float a2 = a * a;
 	float n = 2 / a2 - 2;
-	return (n+2) / (2*PI) * PhongShadingPow( NoH, n );		// 1 mad, 1 exp, 1 mul, 1 log
+	return (n+2) / (2*PI) * ClampedPow( NoH, n );		// 1 mad, 1 exp, 1 mul, 1 log
 }
 
 // [Beckmann 1963, "The scattering of electromagnetic waves from rough surfaces"]
@@ -200,7 +200,7 @@ half Vis_ModifiedKelemen(half LdotH, half Roughness)
 // [Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"]
 float Vis_Schlick( float Roughness, float NoV, float NoL )
 {
-	float k = Square( Roughness ) * 0.5;
+	float k = Roughness * Roughness * 0.5;
 	float Vis_SchlickV = NoV * (1 - k) + k;
 	float Vis_SchlickL = NoL * (1 - k) + k;
 	return 0.25 / ( Vis_SchlickV * Vis_SchlickL );
@@ -210,7 +210,7 @@ float Vis_Schlick( float Roughness, float NoV, float NoL )
 // [Smith 1967, "Geometrical shadowing of a random rough surface"]
 float Vis_Smith( float Roughness, float NoV, float NoL )
 {
-	float a = Square( Roughness );
+	float a = Roughness * Roughness;
 	float a2 = a*a;
 
 	float Vis_SmithV = NoV + sqrt( NoV * (NoV - NoV * a2) + a2 );
@@ -222,7 +222,7 @@ float Vis_Smith( float Roughness, float NoV, float NoL )
 // [Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"]
 float Vis_SmithJointApprox( float Roughness, float NoV, float NoL )
 {
-	float a = Square( Roughness );
+	float a = Roughness * Roughness;
 	float Vis_SmithV = NoL * ( NoV * ( 1 - a ) + a );
 	float Vis_SmithL = NoV * ( NoL * ( 1 - a ) + a );
 	// Note: will generate NaNs with Roughness = 0.  MinRoughness is used to prevent this
@@ -328,7 +328,7 @@ float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
 
     float2 G = float2(1, lambdaV + lambdaL);               // Fraction without the constant (0.5)
 
-    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
+    return ( 0.5 / PI) * (D.x * G.x) / (D.y * G.y);
 }
 
 //================== Physically based F=========================//
