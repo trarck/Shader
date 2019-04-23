@@ -4,7 +4,7 @@
 	{
 		_MainTex("Texture", 2D) = "white" {}
 	}
-	SubShader
+		SubShader
 	{
 		Tags { "RenderType" = "Opaque" }
 		LOD 100
@@ -51,7 +51,6 @@
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
 				fixed3 worldNormal = normalize(i.worldNormal);
 				//把光照方向归一化,如果要求不高，这里可以不归一化

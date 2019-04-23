@@ -2,8 +2,8 @@
 	FastMath.cginc: Math shader code
 =============================================================================*/
   
-#ifndef __PBS_MATH___
-#define __PBS_MATH___
+#ifndef __PBS_FASTMATH___
+#define __PBS_FASTMATH___
 
 /******************************************************************************
     Shader Fast Math Lib (v0.41)
@@ -268,5 +268,5 @@ float AngleBetweenVectorsFast(float3 A, float3 B)
 	return acosFast(CosBetweenVectors(A, B));
 }
 
-#endif //__PBS_MATH___
+#endif //__PBS_FASTMATH___
 
