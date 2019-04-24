@@ -176,5 +176,43 @@ float3 ClearCoatShading(float3 DiffuseColor, float3 SpecularColor, float3 LobeRo
 }
 
 
+float3 ClothShading(float3 DiffuseColor, float3 SpecularColor,  float3 LobeRoughness, float3 LobeEnergy, float3 L, float3 V, half3 N)
+{
+	const float3 FuzzColor = saturate(GBuffer.CustomData.rgb);
+	const float  Cloth = saturate(GBuffer.CustomData.a);
+
+	float NoL = dot(N, L);
+	float NoV = dot(N, V);
+	float LoV = dot(L, V);
+	float InvLenH = rsqrt(2 + 2 * LoV);
+	float NoH = saturate((NoL + NoV) * InvLenH);
+	float VoH = saturate(InvLenH + InvLenH * LoV);
+	NoL = saturate(NoL);
+	NoV = saturate(abs(NoV) + 1e-5);
+
+	// Diffuse	
+	float3 Diffuse = Diffuse_Lambert(GBuffer.DiffuseColor);
+	float3 Diff = Diffuse * LobeEnergy[2];
+
+	// Cloth - Asperity Scattering - Inverse Beckmann Layer	
+	float3 F1 = F_Schlick(FuzzColor, VoH);
+	float  D1 = D_InvGGX(LobeRoughness[1], NoH);
+	float  V1 = Vis_Cloth(NoV, NoL);
+
+	float3 Spec1 = D1 * V1 * F1;
+
+	// Generalized microfacet specular
+	float3 F2 = F_Schlick(GBuffer.SpecularColor, VoH);
+	float  D2 = D_GGX(LobeRoughness[1], NoH) * LobeEnergy[1];
+	float  V2 = Vis_SmithJointApprox(LobeRoughness[1], NoV, NoL);
+
+	float3 Spec2 = D2 * V2 * F2;
+
+	float3 Spec = lerp(Spec2, Spec1, Cloth);
+
+	return Diff + Spec;
+}
+
+
 #endif //__PBS_SHADING_MODELS___
 
