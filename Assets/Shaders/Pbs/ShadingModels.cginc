@@ -1,10 +1,47 @@
 /*=============================================================================
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
 	ShadingModels.cginc: Shader models
 =============================================================================*/
 #ifndef __PBS_SHADING_MODELS___
 #define __PBS_SHADING_MODELS___
 
 #include "BRDF.cginc"
+#include "FastMath.cginc"
 
 float3 StandardShading( float3 DiffuseColor, float3 SpecularColor, float Roughness, float3 LobeEnergy, float3 L, float3 V, half3 N )
 {
@@ -327,7 +364,6 @@ float3 HairShading(float3 BaseColor,float3 DiffuseColor, float3 SpecularColor, f
 
 		S += Mp * Np * Fp * Tp;
 	}
-#endif
 
 	if (1)
 	{
@@ -401,7 +437,7 @@ float3 EyeShading(float3 SpecularColor, float3 LobeRoughness, float3 LobeEnergy,
 	return D * Vis * F;
 }
 
-float3 EyeSubsurfaceShading(float3 DiffuseColor,float Specular,float IrisDistance, IrisMask,float3 IrisNormal,float  float3 L, float3 V, half3 N)
+float3 EyeSubsurfaceShading(float3 DiffuseColor,float Specular,float IrisDistance, float IrisMask,float3 IrisNormal, float3 L, float3 V, half3 N)
 {
 	float NoL = dot(N, L);
 	float LoV = dot(L, V);
@@ -442,8 +478,9 @@ sampler2D	_PreIntegratedBRDF;
 float3 SubsurfaceShadingPreintegratedSkin(float3 SubsurfaceColor, float Opacity, float3 L, float3 V, half3 N)
 {
 
-	float3 PreintegratedBRDF = tex2D(_PreIntegratedBRDF, float2(saturate(dot(N, L) * .5 + .5), 1 - Opacity), 0).rgb;
+	float3 PreintegratedBRDF = tex2D(_PreIntegratedBRDF, float2(saturate(dot(N, L) * .5 + .5), 1 - Opacity)).rgb;
 	return PreintegratedBRDF * SubsurfaceColor;
 }
+
 #endif //__PBS_SHADING_MODELS___
 
