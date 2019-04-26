@@ -252,7 +252,7 @@ float asinFast4( float x )
 float CosBetweenVectors(float3 A, float3 B)
 {
 	// unoptimized: dot(normalize(A), normalize(B))
-	return dot(A, B) * rsqrt(length2(A) * length2(B));
+	return dot(A, B) * rsqrt(dot(A,A) * dot(B,B));
 }
 
 // @param A doesn't have to be normalized, output could be NaN if this is near 0,0,0
