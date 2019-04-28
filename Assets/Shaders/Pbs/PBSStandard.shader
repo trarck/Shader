@@ -55,7 +55,6 @@
             #pragma vertex vert
             #pragma fragment frag
 
-
             #include "UnityCG.cginc"
 			#include "Common.cginc"
 			#include "ShadingModels.cginc"
