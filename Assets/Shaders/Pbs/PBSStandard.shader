@@ -74,8 +74,28 @@
 				float3 worldNormal:TEXCOORD1;
             };
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+			half4       _Color;
+
+			sampler2D   _MainTex;
+			float4      _MainTex_ST;
+
+			sampler2D   _BumpMap;
+			half        _BumpScale;
+
+			sampler2D   _SpecGlossMap;
+			sampler2D   _MetallicGlossMap;
+			half        _Metallic;
+			float       _Glossiness;
+			float       _GlossMapScale;
+
+			sampler2D   _OcclusionMap;
+			half        _OcclusionStrength;
+
+			sampler2D   _ParallaxMap;
+			half        _Parallax;
+
+			half4       _EmissionColor;
+			sampler2D   _EmissionMap;
 
             v2f vert (appdata v)
             {
