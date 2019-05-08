@@ -53,17 +53,26 @@
 		fixed4 frag(v2f i) : SV_Target
 		{
 			// sample the texture
-			fixed4 cor = fixed4(1,0,0,1);
-		   fixed3 v = normalize(_WorldSpaceLightPos0.xyz);
-			half len = length(v);
-			if (len <0.999 || len >1.0000001) {
-				cor.r= 0;
+			fixed4 color = fixed4(1,0,0,1);
+			float3 a = float3(1, 1, 1);
+			float3 b = float3(0.5, 0.2, 0.1);
+			color.rgb = a / b;
+			//if (color.r == 2) {
+
+			//	color.rgb = fixed3(1, 0, 0);
+			//}
+
+			//if (color.g == 5) {
+
+			//	color.rgb = fixed3(0, 1, 0);
+			//}
+
+			if (color.b == 10) {
+
+				color.rgb = fixed3(0, 0, 1);
 			}
-			else {
-				cor.r = 1;
-			}
-			//cor.a = len;
-			return cor;
+
+			return color;
 		}
 		ENDCG
 	}
