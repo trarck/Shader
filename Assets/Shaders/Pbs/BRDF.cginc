@@ -487,4 +487,28 @@ float Vis_Cloth( float NoV, float NoL )
 	return rcp( 4 * ( NoL + NoV - NoL * NoV ) );
 }
 
+//from : Unity3D
+float CharlieL(float x, float r)
+{
+	r = saturate(r);
+	r = 1.0 - (1.0 - r) * (1.0 - r);
+
+	float a = lerp(25.3245, 21.5473, r);
+	float b = lerp(3.32435, 3.82987, r);
+	float c = lerp(0.16801, 0.19823, r);
+	float d = lerp(-1.27393, -1.97760, r);
+	float e = lerp(-4.85967, -4.32054, r);
+
+	return a / (1. + b * pow(abs(x), c) ) + d * x + e;
+}
+
+// Note: This version don't include the softening of the paper: Production Friendly Microfacet Sheen BRDF
+float Vis_Charlie(float NdotL, float NdotV, float roughness)
+{
+	float lambdaV = NdotV < 0.5 ? exp(CharlieL(NdotV, roughness)) : exp(2.0 * CharlieL(0.5, roughness) - CharlieL(1.0 - NdotV, roughness));
+	float lambdaL = NdotL < 0.5 ? exp(CharlieL(NdotL, roughness)) : exp(2.0 * CharlieL(0.5, roughness) - CharlieL(1.0 - NdotL, roughness));
+
+	return 1.0 / ((1.0 + lambdaV + lambdaL) * (4.0 * NdotV * NdotL));
+}
+
 #endif // __PBS_BRDF___

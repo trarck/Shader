@@ -43,7 +43,7 @@ float3 SimpleShading( float3 DiffuseColor, float3 SpecularColor, float Roughness
 	return Diffuse_Lambert( DiffuseColor ) + (D * Vis) * F;
 }
 
-//Í¸Ã÷Í¿²ã»ò³µÆá
+//é€æ˜æ¶‚å±‚æˆ–è½¦æ¼†
 float3 ClearCoatShading(float3 DiffuseColor, float3 SpecularColor, float Roughness, float3 LobeEnergy, float3 L, float3 V, half3 N, float ClearCoat,float ClearCoatRoughness,float2 ClearCoatOctahedron)
 {
 #if 1
