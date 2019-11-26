@@ -99,8 +99,12 @@ Shader "Custom/NormalWorld"
 			fixed4 frag(v2f i) : SV_Target
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
+				half3 tangent = i.tangentToWorld[0].xyz;
+				half3 binormal = i.tangentToWorld[1].xyz;
+				half3 normal = i.tangentToWorld[2].xyz;
+
 				half3 normalTangent = UnpackScaleNormal(tex2D(_NormalMap, i.uv),_NormalScale);
-				float3 normalWorld = normalize(i.tangentToWorld[0].xyz * normalTangent.x + i.tangentToWorld[1] * normalTangent.y + i.tangentToWorld[2] * normalTangent.z);
+				float3 normalWorld = normalize(tangent * normalTangent.x + binormal * normalTangent.y + normal * normalTangent.z);
 				fixed3 lightDirWorld = _WorldSpaceLightPos0.xyz;
 				half nl = dot(normalWorld, lightDirWorld)*0.5+0.5;
 				col.rgb *= nl * _LightColor0;
